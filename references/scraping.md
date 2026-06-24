@@ -19,15 +19,23 @@ with sync_playwright() as p:
 ```
 Crop tighter later with ffmpeg if needed: `ffmpeg -i fig-full.png -vf "crop=W:H:X:Y" fig-1.png`.
 
+> **arXiv papers won't curl.** `arxiv.org/html/<id>` serves a JS challenge to scripts — you'll get a ~11 KB HTML stub instead of each `xN.png`. Don't fetch figures with `curl`/`requests`. Get them from the project's **GitHub `/assets/`** (best — see below), or load the page in a real browser (Playwright `chrome` channel) and read the image bytes via the page's request context. Read the paper *text* via WebFetch on the `/abs/` page.
+
 ## Tweets / X threads
-**Images / the tweet itself:** screenshot the tweet card (it becomes clean slide imagery).
-```python
-pg.goto("https://x.com/<user>/status/<id>", wait_until="networkidle")
-pg.wait_for_timeout(2500)
-el = pg.query_selector("article")        # the tweet card
-el.screenshot(path="tweet-1.png")
+
+**Text first — no login needed.** The public syndication endpoint returns the tweet JSON:
+```bash
+curl -s "https://cdn.syndication.twimg.com/tweet-result?id=<TWEET_ID>&token=tok&lang=en" -H "User-Agent: Mozilla/5.0"
 ```
-If X is gated/login-walled, fall back to a screenshot tool the user has, or ask the user to paste a screenshot.
+Use `text` (and `note_tweet…text` for long-form tweets) for copy, and `mediaDetails[].media_url_https` / `photos[].url` for the lead image — append `?name=large` for full size.
+
+**Thread media — assume X is login-walled.** Logged-out, a browser only renders the lead tweet; scraping `article` / `div[data-testid="tweetText"]` returns nothing for the replies. So for the *rest* of a thread's images, use this fallback chain (in order):
+1. **The linked paper/project's GitHub repo `/assets/`** — for research & product threads this is the goldmine. Find the repo, read its README for image paths, then pull `https://raw.githubusercontent.com/<org>/<repo>/<branch>/assets/<file>.png`. Same figures, higher-res. *(This is exactly how the Qwen-AgentWorld carousel got its visuals when X and arXiv were both blocked.)*
+2. **The Hugging Face / ModelScope model card** — usually embeds the same announcement figures.
+3. **A nitter mirror** of the thread for the original `pbs.twimg.com/media` URLs (frequently down, but worth one try).
+4. Ask the user to drop screenshots of the thread tweets into the working dir.
+
+If you *can* screenshot the tweet card directly (a logged-in browser tool), `page.query_selector("article").screenshot(...)` still gives clean slide imagery.
 
 **Videos / GIFs inside a tweet → ssstwitter:**
 1. Copy the tweet link.

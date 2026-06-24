@@ -1,7 +1,7 @@
 ---
 name: carousel-maker
 description: Turn an article, tweet/X thread, or reel/video link (plus any notes) into a polished 8–10 slide Instagram carousel. Scrapes the source for text and visuals (screenshots for articles & tweets, ssstwitter.com for X GIFs/videos, yt-dlp for reels), picks a topic-appropriate colour palette, writes a cohesive slide-by-slide story, builds a self-contained 1080×1080 HTML deck, and renders Instagram-ready PNG + MP4 files. Use when the user wants to make a carousel, turn a link/article/tweet/reel into slides, or create an Instagram/LinkedIn carousel post.
-version: 1.0.0
+version: 1.1.0
 dependencies: ffmpeg, yt-dlp, and Python Playwright with the "chrome" channel (the chromium binary is usually absent — always launch channel="chrome"). All present on this machine.
 ---
 
