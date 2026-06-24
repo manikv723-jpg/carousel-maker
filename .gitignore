@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+
+# Render scratch (created next to a deck during rendering)
+_rec/
+_slide-*.html
+
+# Generated output sets
+*_IG/

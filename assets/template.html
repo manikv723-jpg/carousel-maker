@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!--
+  CAROUSEL TEMPLATE — self-contained, 1080x1080, palette-driven.
+  Copy this to the working dir as carousel.html, then:
+   1) Set the palette in :root (derive from the topic — see references/design-system.md).
+   2) Duplicate / edit <section>s to reach 8–10 slides.
+   3) Update the NN / TOTAL counters and the handle.
+   4) Render with assets/render_ig.py.
+
+  Anatomy of every slide:
+    <section> -> .slide (grid: 60px header / 1fr middle / 52px footer; padding 64 68)
+      - texture + glow layers (z0, decorative)
+      - header  (eyebrow + counter)            z2
+      - middle  (the content)                  z2
+      - footer  (handle + "swipe →")           z2
+
+  MEDIA RULE: show the full frame. Put images/clips in a
+  flex:1 1 auto; min-height:0 box with object-fit:contain so nothing
+  ever crops or pushes text off the slide. Videos autoplay/loop/muted.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Swap font families to suit the topic; keep one display, one mono, one serif-accent. -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* ===== PALETTE — derive from the topic, then set these 8 vars ===== */
+  :root{
+    --bg:        #06121A;   /* slide background        */
+    --bg2:       #0C1E27;   /* card / panel background */
+    --text:      #E6F1F3;   /* primary text            */
+    --muted:     #A4BEC6;   /* secondary text          */
+    --faint:     #5E7A86;   /* labels, counters, lines */
+    --line:      #1A3744;   /* borders / dividers      */
+    --accent:    #2FE3C8;   /* highlight / brand pop    */
+    --accent-ink:#06121A;   /* text on an --accent fill */
+    --warn:      #FF7E6B;   /* "loses / worse" accent  */
+    --grid-alpha:1;         /* 0 to hide the grid texture */
+
+    --f-display:'Space Grotesk',system-ui,sans-serif;
+    --f-mono:'JetBrains Mono',monospace;
+    --f-serif:'Instrument Serif',serif;
+  }
+  html,body{margin:0;background:#000;}
+  .slide{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+    background:var(--bg);color:var(--text);font-family:var(--f-display);
+    display:grid;grid-template-rows:60px 1fr 52px;padding:64px 68px;}
+  .tex{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(to right,rgba(120,200,210,.045) 1px,transparent 1px),
+                     linear-gradient(to bottom,rgba(120,200,210,.045) 1px,transparent 1px);
+    background-size:60px 60px;opacity:var(--grid-alpha);}
+  .glow{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(110% 70% at 82% 4%,rgba(47,227,200,.13),transparent 58%);}
+  .hd,.ft{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--f-mono);font-size:15px;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;}
+  .ft{align-self:end;}
+  .dot{color:var(--accent);}
+  .rule{width:26px;height:1px;background:var(--faint);display:inline-block;}
+  .mid{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;
+    gap:20px;min-height:0;}
+  .eyebrow{display:flex;gap:10px;align-items:center;}
+  h1{font-family:var(--f-display);font-weight:600;letter-spacing:-.025em;margin:0;line-height:1.05;text-wrap:balance;}
+  .accent-i{font-family:var(--f-serif);font-style:italic;font-weight:400;color:var(--accent);}
+  .lead{font-size:23px;line-height:1.42;color:var(--muted);margin:0;max-width:900px;text-wrap:pretty;}
+  .task{font-size:20px;line-height:1.4;color:var(--muted);margin:0;max-width:920px;}
+  .task b{color:var(--text);font-weight:600;}
+  .media{flex:1 1 auto;width:100%;min-height:0;display:block;object-fit:contain;
+    border-radius:12px;background:var(--bg);}            /* full-frame, never cropped */
+  .card{border:1px solid var(--line);background:rgba(255,255,255,.012);border-radius:14px;
+    padding:18px 20px;display:grid;gap:5px;}
+  .card.win{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent);}
+  .klabel{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+  .knum{font-family:var(--f-display);font-weight:600;font-size:30px;color:var(--text);}
+  .ksub{font-family:var(--f-mono);font-size:13px;color:var(--muted);}
+  .vs{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;}
+  .vs .mid-x{font-family:var(--f-mono);font-size:15px;color:var(--faint);}
+  .note{font-family:var(--f-mono);font-size:13px;color:var(--faint);line-height:1.5;margin:0;}
+  .handle{display:flex;align-items:center;gap:10px;}
+</style>
+</head>
+<body>
+
+<!-- ============ 1 · COVER (optional background video) ============ -->
+<section>
+  <div class="slide">
+    <!-- Optional hero video behind the title; delete if cover is text-only.
+         Keep opacity modest + a gradient so the headline stays readable. -->
+    <video src="./cover.mp4" autoplay loop muted playsinline preload="auto"
+      style="position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;opacity:.5;"></video>
+    <div style="position:absolute;inset:0;z-index:1;pointer-events:none;
+      background:linear-gradient(90deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 78%,transparent) 46%,color-mix(in srgb,var(--bg) 30%,transparent) 100%);"></div>
+    <div class="tex" style="z-index:1;"></div><div class="glow" style="z-index:1;"></div>
+
+    <div class="hd"><div class="eyebrow"><span class="dot">●</span><span>SECTION · field report</span></div><div>01 / 09</div></div>
+    <div class="mid" style="gap:26px;">
+      <div style="font-family:var(--f-mono);font-size:15px;color:var(--accent);letter-spacing:.16em;text-transform:uppercase;">TOPIC <span style="color:var(--faint);margin:0 8px;">×</span> angle <span style="color:var(--faint);margin:0 8px;">×</span> 2026</div>
+      <h1 style="font-size:60px;line-height:1.14;">The big claim, stated plainly —<br/><span class="accent-i">the twist in one line.</span></h1>
+      <p class="lead" style="font-size:24px;max-width:760px;">One-sentence promise of the carousel: what the reader will get, in plain words.</p>
+    </div>
+    <div class="ft"><div class="handle"><span class="rule"></span>@handle</div><div>swipe →</div></div>
+  </div>
+</section>
+
+<!-- ============ 2 · WHAT IT IS (single diagram / hero image) ============ -->
+<section>
+  <div class="slide">
+    <div class="tex"></div><div class="glow"></div>
+    <div class="hd"><div class="eyebrow"><span class="dot">●</span><span>what it is · in one picture</span></div><div>02 / 09</div></div>
+    <div class="mid" style="gap:22px;">
+      <h1 style="font-size:46px;">The idea, <span class="accent-i">in five words.</span></h1>
+      <!-- Light image on a dark deck? Frame it in a light card like this. -->
+      <div style="background:#FBFDFD;border:1px solid var(--line);border-radius:16px;padding:22px 26px;height:330px;display:flex;align-items:center;justify-content:center;">
+        <img src="./diagram.png" alt="" style="max-width:100%;max-height:100%;object-fit:contain;display:block;"/>
+      </div>
+      <p class="lead">Plain-English explanation of the diagram — what goes in, what happens, what comes out.</p>
+    </div>
+    <div class="ft"><div class="handle"><span class="rule"></span>@handle</div><div>swipe →</div></div>
+  </div>
+</section>
+
+<!-- ============ 3 · CONTENT (steps / bullets / cards) ============ -->
+<section>
+  <div class="slide">
+    <div class="tex"></div><div class="glow"></div>
+    <div class="hd"><div class="eyebrow"><span class="dot">●</span><span>how it works</span></div><div>03 / 09</div></div>
+    <div class="mid" style="gap:30px;">
+      <h1 style="font-size:52px;">A one-line claim, <span class="accent-i">with the mechanism.</span></h1>
+      <p class="lead">Optional supporting sentence that frames the three steps below.</p>
+      <div style="display:flex;align-items:stretch;gap:14px;">
+        <div class="card"><div class="klabel">step 01</div><div class="knum" style="font-size:26px;color:var(--accent);">First</div><div class="ksub">what happens</div></div>
+        <div style="align-self:center;color:var(--faint);font-family:var(--f-mono);font-size:22px;">→</div>
+        <div class="card"><div class="klabel">step 02</div><div class="knum" style="font-size:26px;color:var(--accent);">Then</div><div class="ksub">what happens</div></div>
+        <div style="align-self:center;color:var(--faint);font-family:var(--f-mono);font-size:22px;">→</div>
+        <div class="card"><div class="klabel">step 03</div><div class="knum" style="font-size:26px;color:var(--accent);">Finally</div><div class="ksub">what happens</div></div>
+      </div>
+    </div>
+    <div class="ft"><div class="handle"><span class="rule"></span>@handle</div><div>swipe →</div></div>
+  </div>
+</section>
+
+<!-- ============ 4 · MEDIA / USE-CASE (scraped gif or screenshot, FULL FRAME) ============ -->
+<section>
+  <div class="slide">
+    <div class="tex"></div><div class="glow"></div>
+    <div class="hd"><div class="eyebrow"><span class="dot">●</span><span>use case 01 · can it X?</span></div><div>04 / 09</div></div>
+    <!-- justify-content:flex-start so the flexible video fills the middle cleanly -->
+    <div class="mid" style="justify-content:flex-start;gap:14px;">
+      <h1 style="font-size:44px;">It beat the field at <span class="accent-i">the thing.</span></h1>
+      <p class="task"><b>The task:</b> one plain sentence on exactly what was attempted.</p>
+      <!-- FULL-FRAME clip: flex grows it, object-fit:contain keeps the whole frame -->
+      <video class="media" src="./demo.mp4" autoplay loop muted playsinline preload="auto"></video>
+      <div class="vs">
+        <div class="card win"><div class="klabel" style="color:var(--accent);">This one</div><div class="knum">+19.43%</div><div class="ksub">the winning number</div></div>
+        <div class="mid-x">vs</div>
+        <div class="card"><div class="klabel">The rest</div><div class="knum" style="color:var(--warn);">&lt; +15%</div><div class="ksub">what they managed</div></div>
+      </div>
+      <p class="note">Tiny caveat / disclaimer line.</p>
+    </div>
+    <div class="ft"><div class="handle"><span class="rule"></span>@handle</div><div>swipe →</div></div>
+  </div>
+</section>
+
+<!-- ============ ... duplicate slide 4 for each use case (slides 5–8) ... ============ -->
+
+<!-- ============ 9 · CTA / FOLLOW ============ -->
+<section>
+  <div class="slide">
+    <div class="tex"></div><div class="glow"></div>
+    <div class="hd"><div class="eyebrow"><span class="dot">●</span><span>the takeaway</span></div><div>09 / 09</div></div>
+    <div class="mid" style="gap:26px;">
+      <h1 style="font-size:58px;line-height:1.02;">The memorable closing line.<br/>Said <span class="accent-i">simply.</span></h1>
+      <a href="https://instagram.com/handle" style="display:grid;gap:14px;border:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 5%,transparent),transparent 80%);padding:26px 32px;border-radius:14px;text-decoration:none;color:inherit;max-width:760px;">
+        <span style="display:flex;align-items:center;gap:18px;">
+          <span style="font-family:var(--f-display);font-size:38px;font-weight:600;color:var(--text);">@handle</span>
+          <span style="margin-left:auto;font-family:var(--f-mono);font-size:14px;letter-spacing:.16em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:11px 18px;border-radius:999px;font-weight:600;">FOLLOW →</span>
+        </span>
+        <span style="font-family:var(--f-mono);font-size:16px;color:var(--muted);padding-left:2px;">the recurring promise — e.g. a new X, every day.</span>
+      </a>
+    </div>
+    <div class="ft"><div class="handle"><span class="rule"></span>@handle</div><div style="color:var(--accent);">● END</div></div>
+  </div>
+</section>
+
+</body>
+</html>
