@@ -1,7 +1,7 @@
 ---
 name: carousel-maker
 description: Turn an article, tweet/X thread, or reel/video link (plus any notes) into a polished 8–10 slide Instagram carousel. Scrapes the source for text and visuals (screenshots for articles & tweets, ssstwitter.com for X GIFs/videos, yt-dlp for reels), picks a topic-appropriate colour palette, writes a cohesive slide-by-slide story, builds a self-contained 1080×1080 HTML deck, and renders Instagram-ready PNG + MP4 files. Use when the user wants to make a carousel, turn a link/article/tweet/reel into slides, or create an Instagram/LinkedIn carousel post.
-version: 1.2.0
+version: 1.3.0
 dependencies: ffmpeg, yt-dlp, and Python Playwright with the "chrome" channel (the chromium binary is usually absent — always launch channel="chrome"). All present on this machine.
 ---
 
@@ -58,14 +58,20 @@ Use this internal prompt for steps a–c:
 - Set the palette in `:root`. Build one `<section>` per slide following the template's anatomy: **header** (eyebrow + `NN / TOTAL` counter), **middle** (content), **footer** (handle + "swipe →"; last slide = "● END").
 - Place scraped images/clips in their slots. **Media rule (non-negotiable):** show the full frame — `object-fit:contain` inside a `flex:1 1 auto; min-height:0` box so the clip can never crop the chart or push text off-slide. Videos: `<video autoplay loop muted playsinline preload="auto">`.
 - Keep all slides the SAME aspect ratio (IG requires it).
+- **Offer palette choices (unless the user gave brand colours).** The deck stores its palette in 9 `:root` variables, and the texture/glow derive from `--accent`, so the whole look swaps by overriding those vars. Render a side-by-side of one slide across the curated palettes and let the user pick:
+  ```
+  python3 <skill>/assets/palette_preview.py carousel.html ~/Downloads/<slug>_palettes.png --slide 2
+  ```
+  Show that image, ask which they want, then render the full deck with `--palette <name>` (next step). Palettes live in `assets/palettes.json` (aqua-dark, violet-dark, fintech-green, crypto-purple, editorial-amber, mono-light, warm-light) — add your own there. If the user supplied a brand kit, skip this and bake their colours into `:root` directly.
 - Verify before rendering: `grep -c '</section>' carousel.html` equals the slide count (use the closing tag — comments can mention `<section>`); counters read `01 / NN … NN / NN`; every `src="./…"` asset exists.
 
 ### 5 · Render to Instagram-ready files
 - Run the bundled renderer (auto-detects motion vs static slides, reuses the deck's fonts + palette, names outputs by order):
   ```
-  python3 <skill>/assets/render_ig.py /path/to/carousel.html ~/Downloads/<slug>_IG
+  python3 <skill>/assets/render_ig.py /path/to/carousel.html ~/Downloads/<slug>_IG [--palette <name>]
   ```
-- It produces `01.png/mp4 … NN.png/mp4` at 1080×1080. Details + flags in `references/rendering.md`.
+- It produces `01.png/mp4 … NN.png/mp4` at 1080×1080. `--palette` re-skins to any palette in `assets/palettes.json` without editing the deck. Details + flags in `references/rendering.md`.
+- Want every palette as its own postable set? Render once per palette into separate folders (`…_IG_violet-dark`, `…_IG_mono-light`, …) and hand the user all of them to choose from.
 - **Always spot-check**: grab a frame from 1–2 video slides (`ffmpeg -ss … -frames:v 1`) and Read a couple of PNGs to confirm fonts loaded, nothing is clipped, and media shows in full.
 
 ### 6 · Share & iterate

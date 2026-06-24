@@ -48,12 +48,13 @@
   .slide{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
     background:var(--bg);color:var(--text);font-family:var(--f-display);
     display:grid;grid-template-rows:60px 1fr 52px;padding:64px 68px;}
+  /* texture + glow derive from --accent, so swapping the palette re-skins everything */
   .tex{position:absolute;inset:0;z-index:0;pointer-events:none;
-    background-image:linear-gradient(to right,rgba(120,200,210,.045) 1px,transparent 1px),
-                     linear-gradient(to bottom,rgba(120,200,210,.045) 1px,transparent 1px);
+    background-image:linear-gradient(to right,color-mix(in srgb,var(--accent) 6%,transparent) 1px,transparent 1px),
+                     linear-gradient(to bottom,color-mix(in srgb,var(--accent) 6%,transparent) 1px,transparent 1px);
     background-size:60px 60px;opacity:var(--grid-alpha);}
   .glow{position:absolute;inset:0;z-index:0;pointer-events:none;
-    background:radial-gradient(110% 70% at 82% 4%,rgba(47,227,200,.13),transparent 58%);}
+    background:radial-gradient(110% 70% at 82% 4%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 58%);}
   .hd,.ft{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
     font-family:var(--f-mono);font-size:15px;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;}
   .ft{align-self:end;}

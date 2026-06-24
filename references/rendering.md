@@ -7,7 +7,16 @@ Turn the HTML deck into files the user can post.
 python3 <skill>/assets/render_ig.py /path/to/carousel.html ~/Downloads/<slug>_IG
 # 4:5 portrait instead of square (more feed real estate, often better reach):
 python3 <skill>/assets/render_ig.py /path/to/carousel.html ~/Downloads/<slug>_IG --size 1080x1350
+# re-skin to a named palette without editing the deck:
+python3 <skill>/assets/render_ig.py /path/to/carousel.html ~/Downloads/<slug>_IG_mono --palette mono-light
 ```
+
+## Palette options (let the user choose)
+Preview one slide across every palette in `assets/palettes.json`, tiled into one image:
+```
+python3 <skill>/assets/palette_preview.py /path/to/carousel.html ~/Downloads/<slug>_palettes.png --slide 2
+```
+Show it to the user, then render the full deck with `--palette <name>`. `--palette` injects a `:root` override after the deck head (the deck file is never modified) and the texture/glow are `--accent`-derived, so the whole look swaps. To hand over every option as its own set, render once per palette into separate folders.
 What it does automatically:
 - One `<section>` → one slide, in order.
 - Slide with a `<video>` → **screen-recorded MP4** (autoplay+loop, ~one source loop).

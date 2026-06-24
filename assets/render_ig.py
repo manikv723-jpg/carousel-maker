@@ -17,15 +17,32 @@ Requires: Python Playwright (launched with channel="chrome") and ffmpeg.
 Relative ./media paths inside the deck resolve against the deck's own folder,
 so keep carousel.html next to its images/clips.
 """
-import re, os, sys, glob, shutil, subprocess, argparse
+import re, os, sys, glob, json, shutil, subprocess, argparse
 from playwright.sync_api import sync_playwright
 
 ap = argparse.ArgumentParser()
 ap.add_argument("html", help="path to the carousel .html deck")
 ap.add_argument("outdir", help="folder to write 01.png/mp4 ... into")
 ap.add_argument("--size", default="1080x1080", help="slide size WxH (e.g. 1080x1350 for 4:5)")
+ap.add_argument("--palette", default=None,
+                help="re-skin without editing the deck: a name in assets/palettes.json, or a path to a JSON file of CSS var overrides")
 args = ap.parse_args()
 W, H = (int(x) for x in args.size.lower().split("x"))
+
+def load_palette(ref):
+    """Return a {'--bg':'#..',...} dict from a palettes.json key or a JSON file path."""
+    if not ref: return None
+    here = os.path.dirname(os.path.abspath(__file__))
+    book = {}
+    pj = os.path.join(here, "palettes.json")
+    if os.path.exists(pj): book = json.load(open(pj))
+    if ref in book: return book[ref].get("vars", book[ref])
+    if os.path.exists(ref):
+        d = json.load(open(ref)); return d.get("vars", d)
+    raise SystemExit(f"--palette '{ref}' not found in palettes.json or as a file. Options: {', '.join(book)}")
+
+PAL = load_palette(args.palette)
+OVERRIDE = ("<style>:root{" + "".join(f"{k}:{v};" for k,v in PAL.items()) + "}</style>") if PAL else ""
 
 html_path = os.path.abspath(args.html)
 base_dir  = os.path.dirname(html_path)            # ./media paths resolve here
@@ -45,8 +62,9 @@ print(f"{len(sections)} slides @ {W}x{H}")
 TPL = ("<!DOCTYPE html><html><head>{head}"
        "<style>html,body{{margin:0;padding:0;background:#000;}}"
        "#stage{{width:{W}px;height:{H}px;overflow:hidden;position:relative;}}"
-       "section{{display:block;width:100%;height:100%;}}</style></head>"
-       "<body><div id=\"stage\">{inner}</div></body></html>")
+       "section{{display:block;width:100%;height:100%;}}</style>"
+       "{override}"  # palette override comes AFTER the deck head, so it wins
+       "</head><body><div id=\"stage\">{inner}</div></body></html>")
 
 def dur(path):
     r = subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
@@ -61,7 +79,7 @@ def first_video_src(html):
 slides = []  # (idx, file, is_motion, video_src)
 for i, sec in enumerate(sections, 1):
     p = os.path.join(base_dir, f"_slide-{i:02d}.html")
-    open(p, "w", encoding="utf-8").write(TPL.format(head=head, W=W, H=H, inner=sec))
+    open(p, "w", encoding="utf-8").write(TPL.format(head=head, W=W, H=H, inner=sec, override=OVERRIDE))
     slides.append((i, p, "<video" in sec, first_video_src(sec)))
 
 with sync_playwright() as pw:

@@ -28,7 +28,8 @@ Set these 8 variables in `:root`. Everything else references them.
 
 **How to choose:** **if the user gave brand guidelines, use them — that overrides everything here** (map their colours/fonts to the vars, use their logo on the cover). Otherwise start from the subject: if a specific brand/company is central, pull its real brand colours (one dark base, one accent); else use the field's mood. Always check the accent has enough contrast on `--bg`, and that `--accent-ink` is readable on an `--accent` fill.
 
-### Ready-made presets (map left→right to the vars above)
+### Ready-made presets
+These ship as named entries in `assets/palettes.json` (`aqua-dark`, `violet-dark`, `fintech-green`, `crypto-purple`, `editorial-amber`, `mono-light`, `warm-light`). Preview them all on your deck with `assets/palette_preview.py`, then render the chosen one with `render_ig.py … --palette <name>`. Add your own by editing `palettes.json`. The texture/glow derive from `--accent`, so a palette swap re-skins the whole slide. Hex reference (map left→right to the vars above):
 - **AI / deep-tech (dark):** `#06121A · #0C1E27 · #E6F1F3 · #A4BEC6 · #5E7A86 · #1A3744 · #2FE3C8 · #06121A · #FF7E6B` (the default).
 - **Fintech / markets (dark):** `#0A1A14 · #0F241B · #EAF6EF · #9DBDAC · #5E7E6C · #1C3A2C · #46E08A · #07140D · #FF6B6B`.
 - **Crypto / web3 (near-black):** `#0B0B12 · #14141F · #ECEcFb · #A6A6C2 · #6A6A85 · #25253A · #8B5CFF · #0B0B12 · #FF4D6D`.
