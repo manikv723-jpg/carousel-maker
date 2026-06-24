@@ -1,7 +1,7 @@
 ---
 name: carousel-maker
 description: Turn an article, tweet/X thread, or reel/video link (plus any notes) into a polished 8–10 slide Instagram carousel. Scrapes the source for text and visuals (screenshots for articles & tweets, ssstwitter.com for X GIFs/videos, yt-dlp for reels), picks a topic-appropriate colour palette, writes a cohesive slide-by-slide story, builds a self-contained 1080×1080 HTML deck, and renders Instagram-ready PNG + MP4 files. Use when the user wants to make a carousel, turn a link/article/tweet/reel into slides, or create an Instagram/LinkedIn carousel post.
-version: 1.1.0
+version: 1.2.0
 dependencies: ffmpeg, yt-dlp, and Python Playwright with the "chrome" channel (the chromium binary is usually absent — always launch channel="chrome"). All present on this machine.
 ---
 
@@ -23,12 +23,13 @@ The HTML is the editable source of truth. The PNG/MP4s are what gets posted. Nev
 
 ### 1 · Intake
 - Identify the source type: **article** (URL), **tweet / X thread** (URL), **reel / short video** (IG/TikTok/YT/X URL), or **raw topic + notes**.
-- Ask for (or infer) the few things that change the output, in ONE short message — don't interrogate:
-  - **Angle / takeaway** the user wants front-and-centre (the hook).
-  - **Audience & platform** (default: Instagram, square 1080×1080).
-  - **Handle / CTA** (e.g. `@manikk.ai`, "follow for X daily").
-  - **Slide count** (default 8–10).
-- If the user already gave enough, skip the questions and proceed. Bias to action.
+- **Confirm the brand context before building — never hard-code a handle or a look.** Ask the user up front, in ONE concise grouped message (skip anything they've already told you):
+  - **Brand / handle + CTA** — the `@handle` and sign-off that go on every slide, and the closing call-to-action. *Required — do not assume a default handle.*
+  - **Brand guidelines** — "Do you have brand colours (hex), fonts, or a logo I should use?" If yes, use them (Phase 3b). If no, tell them you'll derive a palette from the topic.
+  - **Use case / audience / platform** — what it's for and who it's aimed at (default platform: Instagram, square 1080×1080; offer 4:5 portrait).
+  - **Angle / takeaway** (the hook) and **slide count** (default 8–10).
+- If they hand you a brand kit, save it as `brand.md` in the working dir so it carries across every slide (and is reusable next time).
+- Once you have **brand + use case**, proceed — don't re-ask what's answered, don't interrogate beyond these.
 
 ### 2 · Scrape & collect assets
 Create a working dir (scratchpad). Pull text AND visuals. See `references/scraping.md` for exact commands.
@@ -43,7 +44,7 @@ Three sub-steps, in this order:
 
 **a. Understand the industry.** One short internal note: what field is this (AI, fintech, fashion, health, crypto…), who reads it, what tone fits. This sets vocabulary and restraint.
 
-**b. Choose the palette from the topic.** Don't default to one look. Derive a 6–8 colour palette that *fits the subject* (brand colours of the company involved, or the mood of the field). Map them to the CSS variables in the template (`--bg --bg2 --text --muted --line --accent --accent-ink --warn`). See `references/design-system.md` for the variable system and ready-made light/dark palettes per industry.
+**b. Choose the palette.** If the user gave **brand guidelines, use those** — map their colours/fonts/logo onto the template's variables, and put their logo on the cover. Otherwise derive a 6–8 colour palette that *fits the subject* (brand colours of the company in the story, or the mood of the field). Map to the CSS variables (`--bg --bg2 --text --muted --line --accent --accent-ink --warn`). See `references/design-system.md` for the variable system and ready-made light/dark palettes per industry.
 
 **c. Simplify the topic into a story.** Distill the source to ONE spine a scroller can follow in 10 seconds, then expand to 8–10 slides. Default narrative arc:
 `Hook → What it is (1 image/diagram) → How it works → Proof/receipts → 1–4 concrete use cases (with the scraped media) → How to access / pricing → CTA + follow`.
@@ -72,6 +73,7 @@ Use this internal prompt for steps a–c:
 - Invite specific edits (a headline, a palette shift, a slide reorder, swap a clip's framing to `contain`/crop). Edit `carousel.html`, re-render, re-show.
 
 ## Non-negotiables (hard-won)
+- **Use the user's brand, never a baked-in one.** The handle, CTA, colours, fonts, and logo must come from the user (or be derived from the topic) — `@manikk.ai` and the violet/teal palettes in the examples are just samples, never defaults. Ask first.
 - **GIFs don't animate on Instagram.** Convert every GIF/clip to MP4 (autoplay/loop/muted/playsinline). Raw GIF in a slot = frozen first frame.
 - **Never crop the user's media by accident.** Full frame via `object-fit:contain` + flex. Only crop if the user asks.
 - **Playwright: launch `channel="chrome"`** — the bundled chromium binary is typically not installed here.

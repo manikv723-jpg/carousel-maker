@@ -10,7 +10,7 @@ Hand it an **article, tweet/X thread, or reel** (plus any notes) and it will:
 4. **Render** Instagram-ready files — `.png` for static slides, `.mp4` for motion slides — named `01…NN` in post order.
 5. **Iterate** on your feedback.
 
-GIFs are auto-converted to looping MP4 (Instagram won't animate a raw GIF), media is shown full-frame so nothing gets cropped, and every clip is encoded faststart/yuv420p so IG accepts it.
+On first run it asks for **your** brand — handle, CTA, colours/fonts/logo (or "derive from the topic"), and what the carousel is for — so the output is yours, not a template's. GIFs are auto-converted to looping MP4 (Instagram won't animate a raw GIF), media is shown full-frame so nothing gets cropped, and every clip is encoded faststart/yuv420p so IG accepts it.
 
 ## Requirements
 

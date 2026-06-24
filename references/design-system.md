@@ -26,7 +26,7 @@ Set these 8 variables in `:root`. Everything else references them.
 | `--accent-ink` | text on an accent fill | `#06121A` | `#FFFFFF` |
 | `--warn` | "loses / worse" accent | `#FF7E6B` | `#D7263D` |
 
-**How to choose:** start from the subject. If a specific brand/company is central, pull its real brand colours (one dark base, one accent). Otherwise use the field's mood. Always check the accent has enough contrast on `--bg`, and that `--accent-ink` is readable on an `--accent` fill.
+**How to choose:** **if the user gave brand guidelines, use them — that overrides everything here** (map their colours/fonts to the vars, use their logo on the cover). Otherwise start from the subject: if a specific brand/company is central, pull its real brand colours (one dark base, one accent); else use the field's mood. Always check the accent has enough contrast on `--bg`, and that `--accent-ink` is readable on an `--accent` fill.
 
 ### Ready-made presets (map left→right to the vars above)
 - **AI / deep-tech (dark):** `#06121A · #0C1E27 · #E6F1F3 · #A4BEC6 · #5E7A86 · #1A3744 · #2FE3C8 · #06121A · #FF7E6B` (the default).
