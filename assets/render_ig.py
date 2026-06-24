@@ -134,6 +134,13 @@ with sync_playwright() as pw:
 shutil.rmtree(REC, ignore_errors=True)
 for f in glob.glob(os.path.join(base_dir, "_slide-*.html")): os.remove(f)
 
+# machine-readable manifest so an agent (Telegram bot, etc.) knows what to send + order
+ordered = sorted(f for f in os.listdir(OUT) if re.match(r"\d+\.(png|mp4)$", f))
+manifest = {"size": f"{W}x{H}", "palette": args.palette, "count": len(ordered),
+            "slides": [{"index": int(f.split(".")[0]), "file": f,
+                        "type": "video" if f.endswith(".mp4") else "image"} for f in ordered]}
+json.dump(manifest, open(os.path.join(OUT, "manifest.json"), "w"), indent=2)
+
 print("\nDONE ->", OUT)
 for f in sorted(os.listdir(OUT)):
     print("  ", f, os.path.getsize(os.path.join(OUT, f))//1024, "KB")

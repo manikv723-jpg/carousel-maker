@@ -59,6 +59,19 @@ carousel-maker/
     └── rendering.md             # render usage, square vs 4:5, posting
 ```
 
+## Use it inside an agent / Telegram bot
+
+The scripts are plain CLIs, so a Telegram agent (e.g. on **Hermes** or **OpenClaw**) can run the whole pipeline and post the result:
+
+```bash
+# 1. render (writes NN.png/mp4 + manifest.json)
+python3 assets/render_ig.py carousel.html out/ --palette violet-dark
+# 2. deliver the album to a chat
+python3 assets/send_telegram.py out/ --token "$TELEGRAM_BOT_TOKEN" --chat <chat_id> --caption "…"
+```
+
+In a bot, skip the interactive intake: read the brief from the message (`<url> brand:@x palette:violet-dark`) or a stored `brand.json`, render, deliver, then offer other palettes as a tap. `render_ig.py` emits `manifest.json` (ordered slides + types) so the agent knows what to send. Full playbook + brand-profile schema: [`references/integration.md`](references/integration.md).
+
 ## Customizing the look
 
 The whole palette is 8 CSS variables in the template's `:root` (`--bg --bg2 --text --muted --line --accent --accent-ink --warn`). `references/design-system.md` ships ready-made palettes for AI, fintech, crypto, health, fashion, and editorial — or derive your own from the topic's brand colours. Render at `--size 1080x1350` for a 4:5 portrait set.

@@ -1,7 +1,7 @@
 ---
 name: carousel-maker
 description: Turn an article, tweet/X thread, or reel/video link (plus any notes) into a polished 8–10 slide Instagram carousel. Scrapes the source for text and visuals (screenshots for articles & tweets, ssstwitter.com for X GIFs/videos, yt-dlp for reels), picks a topic-appropriate colour palette, writes a cohesive slide-by-slide story, builds a self-contained 1080×1080 HTML deck, and renders Instagram-ready PNG + MP4 files. Use when the user wants to make a carousel, turn a link/article/tweet/reel into slides, or create an Instagram/LinkedIn carousel post.
-version: 1.3.0
+version: 1.4.0
 dependencies: ffmpeg, yt-dlp, and Python Playwright with the "chrome" channel (the chromium binary is usually absent — always launch channel="chrome"). All present on this machine.
 ---
 
@@ -86,6 +86,14 @@ Use this internal prompt for steps a–c:
 - **Faststart + yuv420p** on every output MP4 or IG may reject/stutter it.
 - **One source of truth:** edit `carousel.html`, then re-render. Don't hand-edit the exported files.
 
+## Running inside another agent (Telegram bots on Hermes / OpenClaw, cron, queues)
+The scripts are plain CLIs, so any agent runtime can drive this skill end-to-end and deliver over chat. In a **headless / bot** context, switch the intake behaviour:
+- **Don't block on questions.** Parse the inputs from the incoming message (`<url> brand:@x palette:violet-dark slides:9`) or a stored **brand profile** (`brand.json`: handle, CTA, palette, logo, colour overrides). Fall back to defaults and auto-derive the palette. Render and deliver, then offer alternate palettes as a tappable follow-up.
+- **Output is machine-readable:** `render_ig.py` writes `outdir/manifest.json` (ordered slide list + types) so the agent knows exactly what to send.
+- **Deliver to Telegram:** `python3 assets/send_telegram.py <outdir> --token $TELEGRAM_BOT_TOKEN --chat <id> --caption "…"` posts the slides as album(s) (photos + videos mixed, in order). Keep the token in env, never in the deck/repo.
+- Re-skinning is cheap (`--palette <name>`, deck unchanged) — perfect for "send me another colourway".
+- Full agent playbook, brand-profile schema, and runtime notes: `references/integration.md`.
+
 ## Optional: publish to claude.ai/design
 If the user keeps decks in claude.ai/design, the deck can be pushed/pulled with the DesignSync MCP (`list_files` → `finalize_plan` → `write_files`). This is an optional distribution step, not required to produce the postable files.
 
@@ -93,5 +101,8 @@ If the user keeps decks in claude.ai/design, the deck can be pushed/pulled with 
 - `references/design-system.md` — slide anatomy, palette variable system, industry palette presets, typography, copy + media rules.
 - `references/scraping.md` — exact recipes: article text + screenshots, tweet screenshots, ssstwitter GIF/video download, yt-dlp reels, ffmpeg clip prep.
 - `references/rendering.md` — render_ig.py usage, ffmpeg recipes, square vs 4:5, IG posting, optional design-sync.
-- `assets/template.html` — the parametrized 1080×1080 carousel template.
-- `assets/render_ig.py` — HTML deck → Instagram-ready PNG/MP4 renderer.
+- `references/integration.md` — drive the skill from a Telegram bot / Hermes / OpenClaw: headless mode, brand profile, manifest, delivery.
+- `assets/template.html` — the parametrized 1080×1080 carousel template (palette + texture/glow are `--accent`-driven).
+- `assets/render_ig.py` — HTML deck → Instagram-ready PNG/MP4 renderer (`--palette`, writes `manifest.json`).
+- `assets/palettes.json` + `assets/palette_preview.py` — curated palettes and a one-image chooser across them.
+- `assets/send_telegram.py` — post a rendered folder to a Telegram chat as album(s).
